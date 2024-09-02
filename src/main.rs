@@ -18,11 +18,11 @@ fn main() {
 
     let hostname = args.hostname;
     let port = 443;
-    // let addr = format!("{}:{}", hostname, port);
 
     // ---
     // Use "native-tls"
     // ---
+    // let addr = format!("{}:{}", hostname, port);
     // let mut stream = TcpStream::connect(&addr).expect("Failed to connect.");
     // let connector = TlsConnector::new().expect("Failed to create TLS connector.");
     // let tls_stream = connector.connect(hostname, stream).expect("Failed to connect with TLS.");
@@ -40,10 +40,8 @@ fn main() {
         .with_root_certificates(root_store)
         .with_no_client_auth();
     config.key_log = Arc::new(rustls::KeyLogFile::new());
-    // let server_name = "www.rust-lang.org".try_into().unwrap();
     let server_name = format!("{hostname}").try_into().unwrap();
     let mut conn = rustls::ClientConnection::new(Arc::new(config), server_name).unwrap();
-    // let mut sock = TcpStream::connect("www.rust-lang.org:443").unwrap();
     let mut sock = TcpStream::connect(format!("{}:{}", hostname, port)).unwrap();
     let mut tls = rustls::Stream::new(&mut conn, &mut sock);
     tls.flush().unwrap();

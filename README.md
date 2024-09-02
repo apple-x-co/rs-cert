@@ -1,7 +1,7 @@
 # rs-cert
 
 ```bash
-./rs-cert example.com
+./rs-cert --hostname example.com
 ```
 
 ```text
@@ -22,8 +22,18 @@ $ cargo --version
 cargo 1.80.1 (376290515 2024-07-16)
 ```
 
+### On M2 macOS
+
 ```bash
 # cargo check
 # cargo build # dev profile
 cargo build --release
+```
+
+### For Linux
+
+```bash
+# cargo install cross
+# docker pull ghcr.io/cross-rs/x86_64-unknown-linux-musl:0.2.5 --platform=linux/amd64
+cross build --release --target=x86_64-unknown-linux-musl
 ```
