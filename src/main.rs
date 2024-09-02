@@ -1,30 +1,57 @@
-use native_tls::TlsConnector;
+use clap::Parser;
+use rustls::RootCertStore;
+use std::io::Write;
 use std::net::TcpStream;
-use clap::{App, Arg};
+use std::sync::Arc;
+use x509_parser::nom::AsBytes;
 use x509_parser::prelude::*;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(long)]
+    hostname: String,
+}
+
 fn main() {
-    let args = App::new("rs-cert")
-        .version("0.1")
-        .about("TLS certificate information")
-        .arg(Arg::with_name("hostname")
-            .help("For verifying certificate")
-            .takes_value(true)
-            .required(true))
-        .get_matches();
+    let args = Args::parse();
 
-    let hostname = args.value_of("hostname").unwrap();
+    let hostname = args.hostname;
     let port = 443;
+    // let addr = format!("{}:{}", hostname, port);
 
-    let addr = format!("{}:{}", hostname, port);
-    let stream = TcpStream::connect(&addr).expect("Failed to connect.");
+    // ---
+    // Use "native-tls"
+    // ---
+    // let mut stream = TcpStream::connect(&addr).expect("Failed to connect.");
+    // let connector = TlsConnector::new().expect("Failed to create TLS connector.");
+    // let tls_stream = connector.connect(hostname, stream).expect("Failed to connect with TLS.");
+    // let cert = tls_stream.peer_certificate().expect("Failed to get certificates.").unwrap();
+    // let der = cert.to_der().expect("Failed convert to DER");
+    // let x509 = X509Certificate::from_der(&*der);
 
-    let connector = TlsConnector::new().expect("Failed to create TLS connector.");
-    let tls_stream = connector.connect(hostname, stream).expect("Failed to connect with TLS.");
-    let cert = tls_stream.peer_certificate().expect("Failed to get certificates.").unwrap();
-    let der = cert.to_der().expect("Failed convert to DER");
-    let x509 = X509Certificate::from_der(&*der);
+    // ---
+    // Use "rustls"
+    // ---
+    let root_store = RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+    };
+    let mut config = rustls::ClientConfig::builder()
+        .with_root_certificates(root_store)
+        .with_no_client_auth();
+    config.key_log = Arc::new(rustls::KeyLogFile::new());
+    // let server_name = "www.rust-lang.org".try_into().unwrap();
+    let server_name = format!("{hostname}").try_into().unwrap();
+    let mut conn = rustls::ClientConnection::new(Arc::new(config), server_name).unwrap();
+    // let mut sock = TcpStream::connect("www.rust-lang.org:443").unwrap();
+    let mut sock = TcpStream::connect(format!("{}:{}", hostname, port)).unwrap();
+    let mut tls = rustls::Stream::new(&mut conn, &mut sock);
+    tls.flush().unwrap();
+    let cert = conn.peer_certificates()
+        .expect("Failed to get peer certificates.").first().unwrap();
+    let x509 = X509Certificate::from_der(cert.as_bytes());
 
+    // Display
     match x509 {
         Ok((rem, cert)) => {
             assert!(rem.is_empty());
