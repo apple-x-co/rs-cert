@@ -1,3 +1,5 @@
+mod cert;
+
 use clap::Parser;
 use rustls::RootCertStore;
 use std::io::Write;
@@ -45,24 +47,34 @@ fn main() {
     let mut sock = TcpStream::connect(format!("{}:{}", hostname, port)).unwrap();
     let mut tls = rustls::Stream::new(&mut conn, &mut sock);
     tls.flush().unwrap();
-    let cert = conn.peer_certificates()
+    let peer_cert = conn.peer_certificates()
         .expect("Failed to get peer certificates.").first().unwrap();
-    let x509 = X509Certificate::from_der(cert.as_bytes());
+    let x509 = X509Certificate::from_der(peer_cert.as_bytes());
 
     // Display
     match x509 {
         Ok((rem, cert)) => {
             assert!(rem.is_empty());
 
-            println!("Version: {}", cert.version());
-            println!("Serial: {}", cert.tbs_certificate.raw_serial_as_string());
-            println!("Subject: {}", cert.subject());
-            println!("Issuer: {}", cert.issuer());
+            let cert = cert::Cert::new(
+                cert.version().to_string().as_str(),
+                cert.tbs_certificate.raw_serial_as_string().as_str(),
+                cert.subject().to_string().as_str(),
+                cert.issuer().to_string().as_str(),
+                cert.validity().not_before.to_string().as_str(),
+                cert.validity().not_after.to_string().as_str(),
+                cert.validity().is_valid(),
+            );
+
+            println!("Version: {}", cert.version);
+            println!("Serial: {}", cert.serial);
+            println!("Subject: {}", cert.subject);
+            println!("Issuer: {}", cert.issuer);
             println!("Validity:");
-            println!("  NotBefore: {}", cert.validity().not_before);
-            println!("  NotAfter: {}", cert.validity().not_after);
-            println!("  is_valid: {}", cert.validity().is_valid());
+            println!("  NotBefore: {}", cert.validity.not_before);
+            println!("  NotAfter: {}", cert.validity.not_after);
+            println!("  is_valid: {}", cert.validity.is_valid);
         }
         _ => panic!("x509 parsing failed: {:?}", x509),
-    }
+    };
 }
