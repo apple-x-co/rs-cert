@@ -52,29 +52,25 @@ fn main() {
     let x509 = X509Certificate::from_der(peer_cert.as_bytes());
 
     // Display
-    match x509 {
-        Ok((rem, cert)) => {
-            assert!(rem.is_empty());
-
-            let cert = cert::Cert::new(
-                cert.version().to_string().as_str(),
-                cert.tbs_certificate.raw_serial_as_string().as_str(),
-                cert.subject().to_string().as_str(),
-                cert.issuer().to_string().as_str(),
-                cert.validity().not_before.to_string().as_str(),
-                cert.validity().not_after.to_string().as_str(),
-                cert.validity().is_valid(),
-            );
-
-            println!("Version: {}", cert.version);
-            println!("Serial: {}", cert.serial);
-            println!("Subject: {}", cert.subject);
-            println!("Issuer: {}", cert.issuer);
-            println!("Validity:");
-            println!("  NotBefore: {}", cert.validity.not_before);
-            println!("  NotAfter: {}", cert.validity.not_after);
-            println!("  is_valid: {}", cert.validity.is_valid);
-        }
+    let cert = match x509 {
+        Ok((_rem, cert)) => cert::Cert::new(
+            cert.version().to_string().as_str(),
+            cert.tbs_certificate.raw_serial_as_string().as_str(),
+            cert.subject().to_string().as_str(),
+            cert.issuer().to_string().as_str(),
+            cert.validity().not_before.to_string().as_str(),
+            cert.validity().not_after.to_string().as_str(),
+            cert.validity().is_valid(),
+        ),
         _ => panic!("x509 parsing failed: {:?}", x509),
     };
+
+    println!("Version: {}", cert.version);
+    println!("Serial: {}", cert.serial);
+    println!("Subject: {}", cert.subject);
+    println!("Issuer: {}", cert.issuer);
+    println!("Validity:");
+    println!("  NotBefore: {}", cert.validity.not_before);
+    println!("  NotAfter: {}", cert.validity.not_after);
+    println!("  is_valid: {}", cert.validity.is_valid);
 }
