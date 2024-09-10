@@ -29,17 +29,11 @@ impl Cert {
             serial: serial.to_string(),
             subject: subject.to_string(),
             issuer: issuer.to_string(),
-            validity: Validity::new(not_before, not_after, is_valid),
-        }
-    }
-}
-
-impl Validity {
-    fn new(not_before: &str, not_after: &str, is_valid: bool) -> Validity {
-        Validity {
-            not_before: not_before.to_string(),
-            not_after: not_after.to_string(),
-            is_valid,
+            validity: Validity {
+                not_before: not_before.to_string(),
+                not_after: not_after.to_string(),
+                is_valid,
+            },
         }
     }
 }
