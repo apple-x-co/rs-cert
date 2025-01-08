@@ -19,10 +19,10 @@ Validity:
 
 ```text
 $ cargo --version
-cargo 1.80.1 (376290515 2024-07-16)
+cargo 1.83.0 (5ffbef321 2024-10-29)
 ```
 
-### On M2 macOS
+### On macOS M2
 
 ```bash
 # cargo check
@@ -30,7 +30,7 @@ cargo 1.80.1 (376290515 2024-07-16)
 cargo build --release
 ```
 
-### For Linux
+### For Linux (x86_64)
 
 ```bash
 # cargo install cross
