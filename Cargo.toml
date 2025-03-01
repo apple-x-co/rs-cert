@@ -1,8 +1,8 @@
 [package]
 name = "rs-cert"
 description = "TLS certificate information"
-version = "0.2.0"
-edition = "2021"
+version = "0.2.1"
+edition = "2024"
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
